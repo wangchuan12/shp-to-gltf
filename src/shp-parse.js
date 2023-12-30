@@ -107,7 +107,12 @@ export default class ShpPrase extends EventDispatcher{
             const item = data[i]
             if (item.geometry.type === "Polygon") {
                 if (height) {
-                    geo.push(Convert.polygonToGeometry(item.geometry , item.properties[height]))
+                    geo.push(Convert.polygonToGeometry(item.geometry , item.properties[height] || 0))
+                    if (this.colors) {
+                       this._setBufferGeometryColor(geo.at(-1) , this._getColor(item))
+                    }
+                } else {
+                    geo.push(Convert.polygonToShapeGeometry(item.geometry))
                     if (this.colors) {
                        this._setBufferGeometryColor(geo.at(-1) , this._getColor(item))
                     }
@@ -122,7 +127,19 @@ export default class ShpPrase extends EventDispatcher{
                                 type : "Polygon",
                                 coordinates : ca
                             }
-                        ) ,  item.properties[height])
+                        ) ,  item.properties[height] || 0)
+                        if (this.colors) {
+                            this._setBufferGeometryColor(geo.at(-1) , this._getColor(item))
+                         }
+                    })
+                } else {
+                    item.geometry.coordinates.forEach((ca)=>{
+                        geo.push(Convert.polygonToShapeGeometry(
+                            {
+                                type : "Polygon",
+                                coordinates : ca
+                            }
+                        ))
                         if (this.colors) {
                             this._setBufferGeometryColor(geo.at(-1) , this._getColor(item))
                          }

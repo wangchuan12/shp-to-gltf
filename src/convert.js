@@ -1,4 +1,4 @@
-import { Path, Shape, ExtrudeGeometry, Vector2} from "three"
+import { Path, Shape, ExtrudeGeometry, Vector2, ShapeGeometry} from "three"
 export default class Convert{
     /**
      * 
@@ -21,6 +21,27 @@ export default class Convert{
         return new ExtrudeGeometry(shape , {
             depth : depth,
         })
+
+    }
+
+    /**
+     * 
+     * @param {import("@turf/helpers").Polygon} geojson
+     */
+    static polygonToShapeGeometry(geojson){
+        const shape = new Shape()
+        for (let i = 0 ; i < geojson.coordinates.length ;i++) {
+            if (i === 0) {
+                shape.setFromPoints(geojson.coordinates[i].map(point => new Vector2().fromArray(point)))
+                continue
+            }
+
+            shape.holes.push(
+                this._toRingToBufferGeometry(geojson.coordinates[i])
+            )
+        }
+
+        return new ShapeGeometry(shape )
 
     }
 
