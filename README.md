@@ -2,7 +2,7 @@
 
 shp-to-gltf  is a javascript lib use to convert SHP(shapefile) to gltf(glb)
 **Read this in other languages: [English](README.md), [中文](README_ZH.md).**
-![polygon](D:\openS\wangchuan12.github.io\shpGltf\polygon.png)
+![polygon](https://wangchuan12.github.io/shpGltf/polygon.png)
 
 ## How to use
 

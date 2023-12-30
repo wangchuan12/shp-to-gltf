@@ -2,7 +2,7 @@
 
 shp-to-gltf 是一个javascript库，用于将SHP(shapefile)转换为gltf(glb)。
 
-![polygon](D:\openS\wangchuan12.github.io\shpGltf\polygon.png)
+![polygon](https://wangchuan12.github.io/shpGltf/polygon.png)
 
 ## 如何使用
 
