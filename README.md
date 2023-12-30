@@ -1,6 +1,7 @@
 # shp-to-gltf
 
-shp-to-gltf  is a javascript lib use to convert SHP(shapefile) to gltf(glb)
+shp-to-gltf  is a javascript lib use to convert SHP(shapefile) to gltf(glb).
+
 **Read this in other languages: [English](README.md), [中文](README_ZH.md).**
 ![polygon](https://wangchuan12.github.io/shpGltf/polygon.png)
 
@@ -11,7 +12,7 @@ npm install shp-to-gltf -g
 ```
 
 ```
-shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true
+shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s color.json
 ```
 
 ## params
@@ -27,7 +28,7 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true
 
 ### style file 
 
-```json
+```js
 {
     "filed" : "Elevation", // filed is use to compute style
     "style" : [

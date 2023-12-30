@@ -11,7 +11,7 @@ npm install shp-to-gltf -g
 ```
 
 ```
-shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true
+shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s color.json
 ```
 
 ## 参数
