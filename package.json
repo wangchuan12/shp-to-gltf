@@ -1,8 +1,11 @@
 {
   "name": "shp-to-gltf",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "a javascript lib to convert shp to gltf",
-  "files": ["./build"],
+  "files": [
+    "./src",
+    "README_ZH.md"
+  ],
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -20,7 +23,6 @@
     "SHP",
     "shapefile"
   ],
-  "author": "chenxuanxuan",
   "license": "MIT",
   "type": "module",
   "dependencies": {
@@ -28,11 +30,17 @@
     "@turf/helpers": "^6.5.0",
     "@turf/projection": "^6.5.0",
     "gltf-pipeline": "^4.1.0",
+    "rollup-plugin-terser": "^7.0.2",
     "shpjs": "^4.0.4",
     "three": "^0.160.0",
     "vite": "^5.0.10"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wangchuan12/shp-to-gltf"
+  },
   "bin": {
-    "shp-to-gltf": "./build/index.umd.js"
-  }
+    "shp-to-gltf": "./src/shp-to-gltf.js"
+  },
+  "author": "chenxuanxuan"
 }
