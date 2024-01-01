@@ -25,7 +25,7 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s col
 | **-d** | **use draco compress model true is use false is not**        |
 | **-s** | **style file path is a json a file use to render per feature** |
 | **-h** | **show help**                                                |
-| **-g** | **It is used to group the output of elements. For example, -s 1000 is a glb output for every 1000 elements** |
+| **-g** | **It is used to group the output of elements.**             |
 
 ### style file 
 
@@ -153,7 +153,7 @@ for (let i = 0 ; i < dir.length ; i++) {
 
 A class that parses shp files into gltf
 
-### 方法
+### method
 
 #### parseWithUrl
 
@@ -203,3 +203,6 @@ A class that parses shp files into gltf
 ```js
 setColorJson(colors)
 ```
+# **Pay attention**
+
+**1 When your shp file is large, use the -g command to block the output, and specify the chunk attribute when using the api**

@@ -24,7 +24,7 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s col
 | **-d** | **使用drago压缩模型true是使用false不使用**                   |
 | **-s** | **样式文件路径是一个json文件，用于渲染每个要素**             |
 | **-h** | **展示帮助信息**                                             |
-| **-s** | **用来对要素进行分组输出，如-s 1000 就是每1000个要素输出为一个glb** |
+| **-g** | **用来对要素进行分组输出。**                                 |
 
 ### **样式文件**
 
@@ -60,7 +60,7 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s col
 }
 ```
 
-# 在浏览器中使用
+# **在浏览器中使用**
 
 ```html
 <!DOCTYPE html>
@@ -113,7 +113,7 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s col
 </html>
 ```
 
-# 在node中使用
+# **在node中使用**
 
 ```js
 import {ShpParse} from 'shp-to-gltf' 
@@ -147,15 +147,15 @@ for (let i = 0 ; i < dir.length ; i++) {
 }
 ```
 
-# api
+# **api**
 
-## ShpParse
+## **ShpParse**
 
-一个用来解析shp文件为gltf的类
+**一个用来解析shp文件为gltf的类**
 
-### 方法
+### **方法**
 
-#### parseWithUrl
+#### **parseWithUrl**
 
 ```js
 
@@ -177,7 +177,7 @@ for (let i = 0 ; i < dir.length ; i++) {
 
 
 
-#### parseWithBuffer
+#### **parseWithBuffer**
 
 ```js
    /**
@@ -196,11 +196,15 @@ for (let i = 0 ; i < dir.length ; i++) {
 | **option-center** | **是否将模型的中心点设置为(0,0,0)**                          |
 | **option-chunk**  | **每个glb的最大要素数量, 超过这个数量会自动进行分组.**       |
 
-#### setColorJson
+#### **setColorJson**
 
-用来设置输出模型的样式，样式规则见上文样式文件
+**用来设置输出模型的样式，样式规则见上文样式文件**
 
 ```js
 setColorJson(colors)
 ```
+
+# **注意事项**
+
+**1 当你的shp文件很大的时候，输出时请使用 -g 命令来进行分块输出 ， 使用api时请指定chunk属性**
 

@@ -1,6 +1,6 @@
 {
   "name": "shp-to-gltf",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "a javascript lib to convert shp to gltf",
   "files": [
     "./src",
