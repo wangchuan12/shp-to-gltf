@@ -3,9 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>shp</title>
 </head>
 <body>
-    <h1>ss</h1>
+    <h1 id="conent">ss</h1>
+    <script type="module">
+        import {ShpParse} from './src/index.js'
+
+        const h1 = document.getElementById('conent')
+        const getColorJson = async ()=>{
+            const color = await fetch('./data/color.json')
+            return await color.json()
+        }
+
+        const download = (data)=>{
+            const blob = new Blob([data])
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.addEventListener
+            a.href = url
+            a.download = 'test.glb'
+            a.click()
+        }
+
+        const shp = new ShpParse()
+
+        const json = await getColorJson()
+
+        shp.setColorJson(json)
+        const option = {
+            height : 'Elevation',
+            center : true,
+        }
+        const data = await shp.parseWithUrl('./data/polygon.zip' , option)
+        download(data)
+
+    </script>
 </body>
 </html>

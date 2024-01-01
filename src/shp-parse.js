@@ -1,29 +1,31 @@
 import shp from "shpjs/dist/shp.js"
 import Convert from "./convert.js"
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { BufferAttribute, BufferGeometry, Color, DoubleSide, EventDispatcher, Matrix4, Mesh, MeshPhysicalMaterial, Object3D, Vector3 } from "three"
+import { BufferAttribute, BufferGeometry, Color, DoubleSide, EventDispatcher, Matrix4, Mesh, MeshPhysicalMaterial, Object3D, ObjectLoader, Vector3 } from "three"
 import {GLTFExporter} from './export/GLTFExporterNode.js'
+import {OBJExporter} from 'three/examples/jsm/exporters/OBJExporter.js'
+import {STLExporter} from 'three/examples/jsm/exporters/STLExporter.js'
 import { toMercator } from "@turf/projection"
 import center from "@turf/center"
+import define from "./util/define.js"
+import { OBJExporterNode } from "./export/OBJExporterNode.js"
 const baseColor = new Color()
-export default class ShpPrase extends EventDispatcher{
+export default class ShpParse extends EventDispatcher{
     constructor(){
         super()
     }
 
-    parseWithUrl(){}
-
     /**
      * 
-     * @param {{size : number , currentSize : number}} data 
+     * @param {string} url 
+     * @param {{height : string , center : boolean , chunk ?: number , outputType ?: string}} option
      */
-    _emitProgress(data){
-        const e = {
-            type : "progress",
-            data : data
-        }
+    async parseWithUrl(url , option){
+        const res = await fetch(url)
 
-        this.dispatchEvent(e)
+        const buffer = await res.arrayBuffer()
+
+        return await this.parseWithBuffer(buffer, option)
     }
 
     /**
@@ -36,8 +38,35 @@ export default class ShpPrase extends EventDispatcher{
 
     /**
      * 
+     * @param {Array<import("@turf/helpers").Feature>} arr 
+     * @param {number} size 
+     * @returns 
+     */
+    _getChunk(arr , size){
+        let tem = []
+        const arr2 = []
+        for (let i = 0 ; i < arr.length ; i++) {
+            if (i !== 0 && i % size === 0) {
+                arr2.push(tem)
+                tem = []
+                continue
+            }
+
+            tem.push(arr[i])
+        }
+
+        if (tem.length) {
+            arr2.push(tem)
+        }
+        
+        return arr2
+    }
+    
+
+    /**
+     * 
      * @param {ArrayBuffer} buffer 
-     * @param {{height : string , center : boolean}} option 
+     * @param {{height : string , center : boolean , chunk ?: number , outputType ?: string}} option 
      * 
      * 
      */
@@ -50,7 +79,7 @@ export default class ShpPrase extends EventDispatcher{
         })
         const box = center(geojson)
 
-        console.log('========parse SHP Done======')
+        console.log('========parse SHP Done======' , geojson.features.length)
 
         this._emitProgress({
             currentSize : 0,
@@ -58,25 +87,89 @@ export default class ShpPrase extends EventDispatcher{
         })
 
         if (["Polygon" , "MultiPolygon"].includes(geojson.features[0].geometry.type)) {
-            const geo = this._dealPolygon(geojson.features , option.height)
-            const mat = new Matrix4().makeRotationX(-Math.PI / 2)
-            if (option.center) {
-                mat.multiply(new Matrix4().makeTranslation(new Vector3(box.geometry.coordinates[0] , box.geometry.coordinates[1] , 0).negate()))
+            let tem = []
+            if (define(option.chunk)) {
+                tem = this._getChunk(geojson.features , option.chunk)
+            } else {
+                tem = [geojson.features]
             }
 
-            geo.applyMatrix4(mat)
+            const glbs = []
 
-            const mesh = new Mesh(geo , new MeshPhysicalMaterial({
-                side : DoubleSide,
-                vertexColors : this.colors ? true : false
-            }))
+            for (let i = 0 ; i < tem.length ; i++) {
+                const geo = this._dealPolygon(tem[i] , option.height)
+                let mat = new Matrix4().makeRotationX(-Math.PI / 2)
+                if (option?.outputType === 'stl') mat = new Matrix4()
+                if (option.center) {
+                    mat.multiply(new Matrix4().makeTranslation(new Vector3(box.geometry.coordinates[0] , box.geometry.coordinates[1] , 0).negate()))
+                }
 
-            const glb = await this._toGlb(mesh)
+                geo.applyMatrix4(mat)
 
-            return glb
+                const mesh = new Mesh(geo , new MeshPhysicalMaterial({
+                    side : DoubleSide,
+                    vertexColors : this.colors ? true : false
+                }))
+
+                switch(option.outputType) {
+                    case 'obj':
+                        const obj = await this._toOBJ(mesh)
+                        this._emitChunk({
+                            type : "obj",
+                            data : obj
+                        })
+                        glbs.push(obj)
+                        break
+                    case 'stl' :
+                        const stl = await this._toSTL(mesh)
+                        this._emitChunk({
+                            type : "stl",
+                            data : obj
+                        })
+                        glbs.push(stl)
+                        break
+                    default : {
+                        const glb = await this._toGlb(mesh)
+                        this._emitChunk({
+                            type : "glb",
+                            data : glb
+                        })
+                        glbs.push(glb)
+                    }
+                }
+            }
+            return glbs.length > 1 ? glbs : glbs[0]
         }
     }
-    
+
+    /**
+     * 
+     * @param {Object3D} object 
+     */
+    async _toOBJ(object){
+        const obj = new OBJExporterNode()
+        // if (this.stream) {
+        //     obj.setWriteStream(this.stream)
+        //     obj.parse(object)
+        //     return null
+        // }
+        const data = obj.parse(object)
+        return data
+    }
+
+    /**
+     * 
+     * @param {Object3D} object 
+     */
+    async _toSTL(object){
+        const stl = new STLExporter()
+        const data = stl.parse(object , {
+            binary : true
+        })
+
+        return data
+    }
+
     /**
      * 
      * @param {Object3D} object 
@@ -90,6 +183,32 @@ export default class ShpPrase extends EventDispatcher{
 
 
         return glb
+    }
+
+     /**
+     * 
+     * @param {{size : number , currentSize : number}} data 
+     */
+     _emitProgress(data){
+        const e = {
+            type : "progress",
+            data : data
+        }
+
+        this.dispatchEvent(e)
+    }
+
+    /**
+     * 
+     * @param {{type : string , data : ArrayBuffer | string}} data 
+     */
+    _emitChunk(data){
+        const e = {
+            type : "chunk",
+            data : data
+        }
+
+        this.dispatchEvent(e)
     }
 
     /**

@@ -1,12 +1,12 @@
 {
   "name": "shp-to-gltf",
-  "version": "1.0.5",
+  "version": "1.0.8",
   "description": "a javascript lib to convert shp to gltf",
   "files": [
     "./src",
     "README_ZH.md"
   ],
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
