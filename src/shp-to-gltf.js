@@ -1,8 +1,9 @@
 #!/usr/bin/env node --max_old_space_size=8192
 import * as fs from 'fs'
-import ShpPrase from './shp-parse.js'
+import ShpParse from './shp-parse.js'
 import processGlb from 'gltf-pipeline/lib/processGlb.js'
 import glbToGltf from 'gltf-pipeline/lib/glbToGltf.js'
+import Deffer from './util/deffre.js'
 
 const showHelp= ()=>{
     console.log('-h' , '      -----show help')
@@ -12,6 +13,7 @@ const showHelp= ()=>{
     console.log('-f' , '      -----set model extrudeHeight by shp filed')
     console.log('-d' , '      -----use draco compress model true is use false is not')
     console.log('-s' , '      -----style file path is a json a file to render per feature')
+    console.log('-g' , '      -----It is used to group the output of elements. For example, -s 1000 is a glb output for every 1000 elements')
 }
 const options = {
     dracoOptions: {
@@ -64,12 +66,20 @@ const run = ()=>{
         colorConfig = JSON.parse(colorConfig)
     }
 
+    const chunkIndex = args.findIndex(item=> item === '-g')
+
+    let chunkNumber = null
+
+    if (chunkIndex !== -1) {
+        chunkNumber = args[chunkIndex + 1]
+    }
+
     const outputPath = args[args.findIndex(item => item === '-o') + 1]
 
     const center = args[args.findIndex(item => item === '-c') + 1]
     const buffer = fs.readFileSync(inputPath)
 
-    const shpParse = new ShpPrase()
+    const shpParse = new ShpParse()
 
     if (colorConfig) shpParse.setColorJson(colorConfig)
 
@@ -80,9 +90,27 @@ const run = ()=>{
     })
     shpParse.parseWithBuffer(buffer , {
         height : heightFiled,
-        center : center
+        center : center,
+        chunk : chunkNumber
     }).then(async (data)=>{
-        let tem = Buffer.from(data)
+        if (Array.isArray(data)) {
+            let tem = outputPath.split('/')
+            const base = tem.at(-1)
+            for(let i = 0 ; i < data.length ; i++ ) {
+                tem[tem.length - 1] = i + base
+                await dealOneBuffer(data[i] , tem.join('/') , draco)
+            }
+            return
+        } 
+
+        await dealOneBuffer(data , outputPath , draco)
+
+        console.timeEnd('done')
+    })
+}
+
+const dealOneBuffer = async (data , name , draco)=>{
+    let tem = Buffer.from(data)
         if (draco !== -1) {
            console.log('use draco compress glb or gltf......')
            console.time('use draco compress glb or gltf')
@@ -91,19 +119,21 @@ const run = ()=>{
            tem = res.glb
         }
 
-        if (isGltf(outputPath)) {
+        if (isGltf(name)) {
             const res = await glbToGltf(tem)
             tem = JSON.stringify(res.gltf)
         }
-        fs.writeFile(outputPath , tem , (error)=>{
+        const deffer = new Deffer()
+        fs.writeFile(name , tem , (error)=>{
             if (error) {
                 console.log(error)
+                deffer.resolve(error)
                 return
             }
-
-            console.timeEnd('done')
+            deffer.resolve()
         })
-    })
+
+        await deffer.promise
 }
 try {
     run()
