@@ -25,6 +25,7 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s col
 | **-d** | **use draco compress model true is use false is not**        |
 | **-s** | **style file path is a json a file use to render per feature** |
 | **-h** | **show help**                                                |
+| **-g** | **It is used to group the output of elements. For example, -s 1000 is a glb output for every 1000 elements** |
 
 ### style file 
 
@@ -59,4 +60,146 @@ shp-to-gltf  -i ./data/polygon.zip  -o ./data/b.glb  -f Elevation -c true -s col
     "defaultColor" : "rgb(25 , 84,123)" // Render the default color when no style is hit
 }
 ```
+# Used in browser
 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>shp</title>
+</head>
+<body>
+    <h1 id="conent">ss</h1>
+    <script type="module">
+        import {ShpParse} from 'shp-to-gltf' 
+
+        const h1 = document.getElementById('conent')
+        // Get style file
+        const getColorJson = async ()=>{
+            const color = await fetch('./data/color.json')
+            return await color.json()
+        }
+        
+        // download
+        const download = (data)=>{
+            const blob = new Blob([data])
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.addEventListener
+            a.href = url
+            a.download = 'test.glb'
+            a.click()
+        }
+
+        const shp = new ShpParse()
+
+        const json = await getColorJson()
+        
+        // Set the style output for the shp object
+        shp.setColorJson(json)
+        
+        const option = {
+            height : 'Elevation', // Height field
+            center : true, // The origin of the output is set to (0, 0, 0)
+        }
+        // Parse shp files to glb
+        const data = await shp.parseWithUrl('./data/polygon.zip' , option)
+        download(data)
+
+    </script>
+</body>
+</html>
+```
+
+# Used in node
+
+```js
+import {ShpParse} from 'shp-to-gltf' 
+const shpParse = new ShpParse()
+
+// Set the style output for the shp object
+const config = fs.readFileSync('./data/color.json')
+shpParse.setColorJson(JSON.parse(config))
+
+const dir = ['test1.zip' , 'test2.zip']
+for (let i = 0 ; i < dir.length ; i++) {
+    const item = dir[i]
+    if (item.search('.zip') === -1) continue
+    // Get the shp file
+    const data = fs.readFileSync(item)
+    // Parse shp files to glb
+    const glb = await shpParse.parseWithBuffer(data , {
+        height : 'Elevation',
+        center : true,
+        chunk : 100000 // More than 10000 elements of a single glb file are grouped for output
+    })
+    if (Array.isArray(glb)) {
+        glb.forEach(async (items , index)=>{
+            const tem = Buffer.from(items)
+            fs.writeFileSync(`test${index}.glb` , tem )
+        })
+    } else {
+        const tem = Buffer.from(glb)
+        fs.writeFileSync(`test$.glb` ,  tem)
+    }
+}
+```
+
+# api
+
+## ShpParse
+
+A class that parses shp files into gltf
+
+### 方法
+
+#### parseWithUrl
+
+```js
+
+    /**
+     * 
+     * @param {string} url 
+     * @param {{height : string , center : boolean , chunk ?: number , outputType ?: string}} option
+     *
+     */
+    async parseWithUrl(url , option)
+   
+```
+
+| **url**           | **An address used to represent the shp file**                |
+| ----------------- | ------------------------------------------------------------ |
+| **option-height** | **Sets the field used to extrude the plane into the model, the value of this field will be set to the height of the 3D mode** |
+| **option-center** | **Whether to set the center point of the model to (0,0,0)**  |
+| **option-chunk**  | **The maximum number of elements per glb, beyond which it is automatically grouped** |
+
+
+
+#### **parseWithBuffer**
+
+```js
+   /**
+     * 
+     * @param {ArrayBuffer} buffer 
+     * @param {{height : string , center : boolean , chunk ?: number , outputType ?: string}} option 
+     * 
+     * 
+     */
+    async parseWithBuffer(buffer , option)
+```
+
+| **url**           | **A buffer used to represent the shp file**                  |
+| ----------------- | ------------------------------------------------------------ |
+| **option-height** | **Sets the field used to extrude the plane into the model, the value of this field will be set to the height of the 3D mode** |
+| **option-center** | **Whether to set the center point of the model to (0,0,0)**  |
+| **option-chunk**  | **The maximum number of elements per glb, beyond which it is automatically grouped** |
+
+#### **setColorJson**
+
+**The style used to set the output model. See Style file  above for the style rules**
+
+```js
+setColorJson(colors)
+```
